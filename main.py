@@ -123,6 +123,8 @@ def main() -> None:
     for (cmd, func, _) in cmds:
         application.add_handler(CommandHandler(cmd, func))
 
+    application.add_handler(MessageHandler(filters.COMMAND, help_clojure(lambda: cmds)))
+
     jobs = [
         ("heads up", os.getenv("HEADS_UP_TIME", "08:30"), send_lunch_headsup),
         ("election", os.getenv("ELECTION_TIME", "10:00"), send_lunch_election)
