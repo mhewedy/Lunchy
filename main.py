@@ -56,7 +56,7 @@ async def send_lunch_election(context):
         await context.bot.send_message(chat_id=chat_id, text=selected_user_msg + f" {selected_user}")
 
 
-async def select_user():
+def select_user():
     global users
 
     if len(users) > 0:
