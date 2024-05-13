@@ -11,7 +11,8 @@ def summarize_order(text):
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": f"""
-extract food items (in arabic) and give me this food order details as bullet points (in Arabic):
+هل يمكنك تلخيص هذا الطلب بالعربي
+الرجاء محاولة عرض اصناف الطعام فقط
         
 {text}
         """}]
