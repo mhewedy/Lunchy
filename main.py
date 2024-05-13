@@ -29,7 +29,7 @@ async def capture_users_and_order(update: Update, context: ContextTypes.DEFAULT_
         users.append(captured_user)
         logging.info(f'user {captured_user} added!, {users}')
 
-    order[msg.id] = msg.text
+    order[str(msg.id)] = msg.text
     logging.info(f'order {order}')
 
 
