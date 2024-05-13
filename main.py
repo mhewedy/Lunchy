@@ -34,7 +34,10 @@ async def capture_names(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def send_lunch_headsup(context):
     global users
     users = []  # clean
-    await context.bot.send_message(chat_id=chat_id, text='heads up')
+    await context.bot.send_message(chat_id=chat_id, text="""
+    يلا يا شباب أبدأو ضيفو طلابتكم ...
+     خدو بالكم اللي هيبعت حاجه في الشات من دلوقتي لحد ما يتم اختيار الإسم هيكون من ضمن الناس اللي هتدخل في الاختيار
+    """)
 
 
 async def send_lunch_election(context):
@@ -43,7 +46,7 @@ async def send_lunch_election(context):
     if len(users) > 0:
         selected_user = random.choice(users)
         logger.info(f'selected user is: {selected_user}')
-        await context.bot.send_message(chat_id=chat_id, text=f'user {selected_user} elected')
+        await context.bot.send_message(chat_id=chat_id, text=f' سعيد الحظ النهارده هو{selected_user}!')
     else:
         logger.warning('user list is empty')
 
@@ -54,7 +57,7 @@ def main() -> None:
 
     application.add_handler(CommandHandler("ping", ping_command))
 
-    headsup_time = dateutil.parser.parse(os.getenv("HEADS_UP_TIME", "08:30")).time()
+    headsup_time = dateutil.parser.parse(os.getenv("HEADS_UP_TIME", "08:45")).time()
     logger.info(f'heads up time is set to: {headsup_time} UTC')
     application.job_queue.run_daily(send_lunch_headsup, time=headsup_time)
 
