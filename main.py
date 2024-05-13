@@ -28,6 +28,12 @@ async def yalla_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await select_user(context)
 
 
+async def reset_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global users
+    log.info("reset_command")
+    users = []
+
+
 async def capture_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global users, chat_id
     chat_id = update.message.chat_id
@@ -40,7 +46,7 @@ async def capture_users(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE):
     global users
     log.info("send_lunch_headsup")
-    users = []  # clean
+    users = []
     await context.bot.send_message(chat_id=chat_id, text="يلا يا شباب أبدأو ضيفو طلابتكم ...")
 
 
@@ -65,6 +71,7 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, capture_users))
     application.add_handler(CommandHandler("ping", ping_command))
     application.add_handler(CommandHandler("yalla", yalla_command))
+    application.add_handler(CommandHandler("reset", reset_command))
 
     headsup_time = dateutil.parser.parse(os.getenv("HEADS_UP_TIME", "08:30")).time()
     log.info(f'heads up time is set to: {headsup_time} UTC')
