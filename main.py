@@ -8,8 +8,6 @@ import dateutil.parser
 from telegram import Update
 from telegram.ext import Application, ContextTypes, MessageHandler, filters, CommandHandler
 
-SELECTED_USER_MSG = "صاحب الحظ السعيد اليوم هو"
-
 logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 log = logging.getLogger(__name__)
@@ -60,7 +58,7 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE):
     if len(users) > 0:
         selected_user = random.choice(users)
         log.info(f'we have this list of users: {users}, randomly selected user is: {selected_user}')
-        await context.bot.send_message(chat_id=chat_id, text=SELECTED_USER_MSG + f" {selected_user}")
+        await context.bot.send_message(chat_id=chat_id, text="صاحب الحظ السعيد اليوم هو" + f" {selected_user}")
     else:
         log.warning(f'user list might be empty: {users}')
 
