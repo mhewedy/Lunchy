@@ -77,7 +77,7 @@ async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     ai_response = summarizer.summarize_order("\n".join(text for _, text in order.items()))
-    await update.message.reply_text(ai_response)
+    await update.message.reply_text(ai_response if ai_response else 'حدث خطأ')
 
 
 async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
