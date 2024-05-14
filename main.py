@@ -1,25 +1,21 @@
 #!/usr/bin/env python
 # pylint: disable=unused-argument
 import logging
+import os
 import random
 
-import dateutil.parser
 from telegram import Update
-from telegram.ext import Application, ContextTypes, MessageHandler, filters, CommandHandler
+from telegram.ext import ContextTypes, MessageHandler, filters
 
-import envars
+import boot
 import summarizer
-from meta import command, job
-
-logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
-logging.getLogger("httpx").setLevel(logging.WARNING)
-logging = logging.getLogger(__name__)
+from boot import command, job
 
 users = []
 order = {}
 
 
-@command
+@command(text=True)
 async def capture_users_and_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global users, order
     msg = update.edited_message if update.edited_message else update.message
@@ -33,17 +29,17 @@ async def capture_users_and_order(update: Update, context: ContextTypes.DEFAULT_
     logging.info(f'order {order}')
 
 
-@command
+@command(name="ping", desc="اختبار البوت")
 async def ping_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Pong!")
 
 
-@command
+@command(name="yalla", desc="اختيار اسم عشوائي من القائمة")
 async def yalla_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await select_user(context, update.message.chat_id)
 
 
-@command
+@command(name="add", desc="إضافة اسم إلى القائمة")
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users
     user = " ".join(context.args)
@@ -54,14 +50,14 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("خطأ، يجب كتابة الإسم")
 
 
-@command
+@command(name="list", desc="عرض جميع الأسماء في القائمة")
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users
     await update.message.reply_text(
         "قائمة الأسماء هي: \n" + "\n".join(users) if len(users) > 0 else "قائمة المستخدمين فارغة")
 
 
-@command
+@command(name="clear", desc="مسح جميع الأسماء من القائمة")
 async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users, order
     users = []
@@ -69,7 +65,7 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("تم مسح جميع الأسماء من القائمة")
 
 
-@command
+@command(name="summarize", desc="تلخيص الطلب")
 async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users, order
     if len(order) == 0:
@@ -80,7 +76,7 @@ async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(ai_response if ai_response else 'حدث خطأ')
 
 
-@command
+@command(name="about", desc="عن البوت")
 async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users
     await update.message.reply_text("""
@@ -93,15 +89,15 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def help_clojure(cmds_fn):
-    @command
+    @command(name="help", desc="عرض المساعدة")
     async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         global users
-        await update.message.reply_text("\n".join(f'/{c} -> {msg}' for (c, _, msg) in cmds_fn()))
+        await update.message.reply_text("\n".join(f'/{name} -> {desc}' for (name, desc) in cmds_fn()))
 
     return help_command
 
 
-@job
+@job(time=os.getenv("HEADS_UP_TIME", "08:00"))
 async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
     global users, order
     users = []
@@ -109,7 +105,7 @@ async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
     await context.bot.send_message(chat_id, text="يلا يا شباب أبدأو ضيفو طلابتكم")
 
 
-@job
+@job(time=os.getenv("SELECTION_TIME", "09:30"), enabled=False)
 async def send_lunch_selection(context: ContextTypes.DEFAULT_TYPE, chat_id):
     await select_user(context, chat_id)
 
@@ -126,36 +122,10 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
 
 
 def main() -> None:
-    application = Application.builder().token(envars.BOT_TOKEN).build()
-
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, capture_users_and_order))
-
-    cmds = [
-        ("ping", ping_command, "اختبار البوت"),
-        ("yalla", yalla_command, "اختيار اسم عشوائي من القائمة"),
-        ("add", add_command, "إضافة اسم إلى القائمة"),
-        ("list", list_command, "عرض جميع الأسماء في القائمة"),
-        ("clear", clear_command, "مسح جميع الأسماء من القائمة"),
-        ("summarize", summarize_command, "تلخيص الطلب"),
-        ("about", about_command, "عن البوت"),
-        ("help", help_clojure(lambda: cmds), "عرض المساعدة"),
-    ]
-    for (cmd, func, _) in cmds:
-        application.add_handler(CommandHandler(cmd, func))
-
-    application.add_handler(MessageHandler(filters.COMMAND, help_clojure(lambda: cmds)))
-
-    jobs = [
-        (envars.HEADS_UP_TIME, send_lunch_headsup),
-        # ("selection", envars.SELECTION_TIME, send_lunch_selection),
-    ]
-    for (t, func) in jobs:
-        parsed_time = dateutil.parser.parse(t).time()
-        logging.info(f'scheduling job {func.__name__} at: {parsed_time} UTC')
-        application.job_queue.run_daily(func, time=parsed_time)
-
+    logging.info("declaring default command")
+    boot.application.add_handler(MessageHandler(filters.COMMAND, help_clojure(lambda: boot.cmds)))
     # Run the bot until the user presses Ctrl-C
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    boot.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == "__main__":
