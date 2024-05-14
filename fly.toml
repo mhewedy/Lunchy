@@ -1,0 +1,18 @@
+# fly.toml app configuration file generated for lunchy on 2024-05-14T15:41:51+03:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'lunchy'
+primary_region = 'cdg'
+
+[build]
+  builder = 'paketobuildpacks/builder:base'
+  buildpacks = ["gcr.io/paketo-buildpacks/python"]
+
+[env]
+  PORT = '0'
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = "256MB"
