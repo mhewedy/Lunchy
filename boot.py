@@ -30,12 +30,11 @@ def command(name=None, desc=None, text=False):
 
             return func(*args, **kwargs)
 
-        logging.info(f"declaring command: {name}")
+        if name: logging.info(f"declaring command: {name}")
         if text:
             application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, wrapped_func))
         else:
             application.add_handler(CommandHandler(name, wrapped_func))
-
         return wrapped_func
 
     return wrapper
@@ -53,8 +52,8 @@ def job(time, enabled=True):
             return result
 
         if enabled:
+            wrapped_func.__name__ = f'w/{func.__name__}'
             application.job_queue.run_daily(wrapped_func, time=dateutil.parser.parse(time).time())
-
         return wrapped_func
 
     return wrapper
