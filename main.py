@@ -12,7 +12,6 @@ import food
 from app import BotApp
 
 bot = BotApp()
-
 users = []
 order = {}
 
