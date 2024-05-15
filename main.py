@@ -97,13 +97,10 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """)
 
 
-def help_clojure(cmds_fn):
-    @command(name="help", desc="عرض المساعدة")
-    async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        global users
-        await update.message.reply_text("\n".join(f'/{name} -> {desc}' for (name, desc) in cmds_fn()))
-
-    return help_command
+@command(name="help", desc="عرض المساعدة")
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global users
+    await update.message.reply_text("\n".join(f'/{name} -> {desc}' for (name, desc) in boot.cmds))
 
 
 @job(time=os.getenv("HEADS_UP_TIME", "08:00"))
@@ -132,7 +129,7 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
 
 def main() -> None:
     logging.info("declaring default command")
-    boot.application.add_handler(MessageHandler(filters.COMMAND, help_clojure(lambda: boot.cmds)))
+    boot.application.add_handler(MessageHandler(filters.COMMAND, help_command))
     # Run the bot until the user presses Ctrl-C
     boot.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
