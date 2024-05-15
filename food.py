@@ -21,7 +21,7 @@ def _is_food(text):
     return result
 
 
-async def is_food(text):
+def is_food(text):
     try:
         return retry_function(_is_food, text=text)
     except Exception as e:

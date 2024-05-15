@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # pylint: disable=unused-argument
-import asyncio
 import logging
 import os
 import random
+import threading
 
 from telegram import Update
 from telegram.ext import ContextTypes, MessageHandler, filters
@@ -26,7 +26,11 @@ async def capture_users_and_order(update: Update, context: ContextTypes.DEFAULT_
         users.append(captured_user)
         logging.info(f'user {captured_user} added!')
 
-    if await asyncio.create_task(food.is_food(msg.text)):
+    threading.Thread(target=check_food, args=(msg, captured_user)).start()
+
+
+def check_food(msg, captured_user):
+    if food.is_food(msg.text):
         order[(msg.id, captured_user)] = msg.text
         logging.info(f'adding {msg.text} to the order {order}')
     else:
