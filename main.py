@@ -121,7 +121,7 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
     if len(users) > 0:
         selected_user = random.choice(users)
         logging.info(f'we have this list of users: {users}, randomly selected user is: {selected_user}')
-        await context.bot.send_message(chat_id=chat_id, text="صاحب الحظ السعيد اليوم هو" + f" {selected_user}")
+        await context.bot.send_message(chat_id=chat_id, text="صاحب الحظ السعيد اليوم هو" + f" {selected_user} 🎉")
     else:
         logging.warning(f'user list might be empty: {users}')
         await context.bot.send_message(chat_id=chat_id, text="قائمة المستخدمين فارغة")
