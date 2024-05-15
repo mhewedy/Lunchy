@@ -20,7 +20,7 @@ async def capture_users_and_order(update: Update, context: ContextTypes.DEFAULT_
     global users, order
     msg = update.edited_message if update.edited_message else update.message
 
-    captured_user = update.effective_user.first_name + " " + update.effective_user.last_name
+    captured_user = f'{update.effective_user.first_name} {update.effective_user.last_name or ""}'
     if captured_user not in users:
         users.append(captured_user)
         logging.info(f'user {captured_user} added!')
