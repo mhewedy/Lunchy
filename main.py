@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # pylint: disable=unused-argument
+import asyncio
 import logging
 import os
 import random
@@ -8,7 +9,7 @@ from telegram import Update
 from telegram.ext import ContextTypes, MessageHandler, filters
 
 import boot
-import summarizer
+import food
 from boot import command, job
 
 users = []
@@ -25,8 +26,11 @@ async def capture_users_and_order(update: Update, context: ContextTypes.DEFAULT_
         users.append(captured_user)
         logging.info(f'user {captured_user} added!')
 
-    order[(msg.id, captured_user)] = msg.text
-    logging.info(f'order {order}')
+    if await asyncio.create_task(food.is_food(msg.text)):
+        order[(msg.id, captured_user)] = msg.text
+        logging.info(f'adding {msg.text} to the order {order}')
+    else:
+        logging.warning(f'{msg.text} is not food, skipping...')
 
 
 @command(name="ping", desc="اختبار البوت")
@@ -72,8 +76,9 @@ async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("لا يوجد طلبات")
         return
 
-    ai_response = summarizer.summarize_order("\n".join(f'{o}' for (_, u), o in order.items()))
-    await update.message.reply_text(ai_response if ai_response else 'حدث خطأ')
+    food_list = "\n".join(f'{u} -> {o}' for (_, u), o in order.items())
+    logging.info(food_list)
+    await update.message.reply_text(food_list)
 
 
 @command(name="about", desc="عن البوت")
