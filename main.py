@@ -6,17 +6,18 @@ import random
 import threading
 
 from telegram import Update
-from telegram.ext import ContextTypes, MessageHandler, filters
+from telegram.ext import ContextTypes
 
-import boot
 import food
-from boot import command, job
+from app import BotApp
+
+bot = BotApp()
 
 users = []
 order = {}
 
 
-@command(text=True)
+@bot.command(text=True)
 async def capture_users_and_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     global users, order
     msg = update.edited_message if update.edited_message else update.message
@@ -37,17 +38,17 @@ def check_food(msg, captured_user):
         logging.warning(f'{msg.text} is not food, skipping...')
 
 
-@command(name="ping", desc="اختبار البوت")
+@bot.command(name="ping", desc="اختبار البوت")
 async def ping_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text("Pong!")
 
 
-@command(name="yalla", desc="اختيار اسم عشوائي من القائمة")
+@bot.command(name="yalla", desc="اختيار اسم عشوائي من القائمة")
 async def yalla_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await select_user(context, update.message.chat_id)
 
 
-@command(name="add", desc="إضافة اسم إلى القائمة")
+@bot.command(name="add", desc="إضافة اسم إلى القائمة")
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users
     user = " ".join(context.args)
@@ -58,14 +59,14 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("خطأ، يجب كتابة الإسم")
 
 
-@command(name="list", desc="عرض جميع الأسماء في القائمة")
+@bot.command(name="list", desc="عرض جميع الأسماء في القائمة")
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users
     await update.message.reply_text(
         "قائمة الأسماء هي: \n" + "\n".join(users) if len(users) > 0 else "قائمة المستخدمين فارغة")
 
 
-@command(name="clear", desc="مسح جميع الأسماء من القائمة")
+@bot.command(name="clear", desc="مسح جميع الأسماء من القائمة")
 async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users, order
     users = []
@@ -73,7 +74,7 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("تم مسح جميع الأسماء من القائمة")
 
 
-@command(name="summarize", desc="تلخيص الطلب")
+@bot.command(name="summarize", desc="تلخيص الطلب")
 async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users, order
     if len(order) == 0:
@@ -85,7 +86,7 @@ async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(food_list)
 
 
-@command(name="about", desc="عن البوت")
+@bot.command(name="about", desc="عن البوت")
 async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     global users
     await update.message.reply_text("""
@@ -97,13 +98,7 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """)
 
 
-@command(name="help", desc="عرض المساعدة")
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global users
-    await update.message.reply_text("\n".join(f'/{name} -> {desc}' for (name, desc) in boot.cmds))
-
-
-@job(time=os.getenv("HEADS_UP_TIME", "08:00"))
+@bot.job(time=os.getenv("HEADS_UP_TIME", "08:00"))
 async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
     global users, order
     users = []
@@ -111,7 +106,7 @@ async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
     await context.bot.send_message(chat_id, text="يلا يا شباب أبدأو ضيفو طلابتكم")
 
 
-@job(time=os.getenv("SELECTION_TIME", "09:30"), enabled=False)
+@bot.job(time=os.getenv("SELECTION_TIME", "09:30"), enabled=False)
 async def send_lunch_selection(context: ContextTypes.DEFAULT_TYPE, chat_id):
     await select_user(context, chat_id)
 
@@ -127,12 +122,6 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
         await context.bot.send_message(chat_id=chat_id, text="قائمة المستخدمين فارغة")
 
 
-def main() -> None:
-    logging.info("declaring default command")
-    boot.application.add_handler(MessageHandler(filters.COMMAND, help_command))
-    # Run the bot until the user presses Ctrl-C
-    boot.application.run_polling(allowed_updates=Update.ALL_TYPES)
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    bot.help()
+    bot.application.run_polling(allowed_updates=Update.ALL_TYPES)
