@@ -10,6 +10,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 import food
+from util import run_async_function
 
 bot = BotApp()
 users = []
@@ -18,10 +19,10 @@ order = {}
 
 @bot.command(text=True)
 async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    threading.Thread(target=_capture_order, args=(update,)).start()
+    threading.Thread(target=run_async_function, args=(_capture_order, update,)).start()
 
 
-def _capture_order(update: Update):
+async def _capture_order(update: Update):
     global users, order
 
     message = update.edited_message if update.edited_message else update.message
@@ -31,7 +32,7 @@ def _capture_order(update: Update):
         order[(message.id, captured_user)] = message.text
         logging.info(f'adding {message.text} to the order {order}')
         if captured_user not in users: users.append(captured_user)
-        # message.reply_text('تمت الإضافة')
+        await message.reply_text('تمت الإضافة' if update.message else 'تم التعديل')
     else:
         logging.warning(f'{message.text} is not food, skipping...')
 
