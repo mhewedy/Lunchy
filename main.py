@@ -25,14 +25,15 @@ async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 async def _capture_order(update: Update):
     global users, order
 
-    message = update.edited_message if update.edited_message else update.message
+    (message, is_edit) = (update.message, False) if update.message else (update.edited_message, True)
     captured_user = f'{update.effective_user.first_name} {update.effective_user.last_name or ""}'
 
     if food.is_food(message.text):
         order[(message.id, captured_user)] = message.text
         logging.info(f'adding {message.text} to the order {order}')
         if captured_user not in users: users.append(captured_user)
-        await message.reply_text('تمت الإضافة' if update.message else 'تم التعديل')
+
+        await message.reply_text('تم التعديل' if is_edit else 'تمت الإضافة')
     else:
         logging.warning(f'{message.text} is not food, skipping...')
 

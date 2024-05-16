@@ -20,4 +20,4 @@ def run_async_function(async_func, *args, **kwargs):
     async def wrapper():
         await async_func(*args, **kwargs)
 
-    asyncio.run(wrapper())
+    retry_function(asyncio.run, main=wrapper())

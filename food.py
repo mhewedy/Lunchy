@@ -1,5 +1,6 @@
 import logging
 
+import g4f.models
 from g4f.client import Client
 
 from util import retry_function
@@ -12,7 +13,7 @@ def _is_food(text):
 
     request = f"Does this text contain food (Arabic/English) name (answer in English only by yes/no only): {text}"
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model=g4f.models.default,
         messages=[{"role": "user", "content": request}],
     )
     logging.info(f"request: {request}, response: {response.choices[0].message.content}")
