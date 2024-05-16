@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # pylint: disable=unused-argument
+import asyncio
 import logging
 import os
 import random
-import threading
 
 from telebot import BotApp
 from telegram import Update
 from telegram.ext import ContextTypes
 
 import food
-from util import run_async_function
 
 bot = BotApp()
 users = []
@@ -19,23 +18,22 @@ order = {}
 
 @bot.command(text=True)
 async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    threading.Thread(target=run_async_function, args=(_capture_order, update,)).start()
+    async def capture():
+        global users, order
+        (message, is_edit) = (update.message, False) if update.message else (update.edited_message, True)
+        captured_user = f'{update.effective_user.first_name} {update.effective_user.last_name or ""}'
 
+        if food.is_food(message.text):
+            order[(message.id, captured_user)] = message.text
+            logging.info(f'adding {message.text} to the order {order}')
+            if captured_user not in users: users.append(captured_user)
 
-async def _capture_order(update: Update):
-    global users, order
+            await message.reply_text('تم التعديل' if is_edit else 'تمت الإضافة')
+        else:
+            logging.warning(f'{message.text} is not food, skipping...')
 
-    (message, is_edit) = (update.message, False) if update.message else (update.edited_message, True)
-    captured_user = f'{update.effective_user.first_name} {update.effective_user.last_name or ""}'
-
-    if food.is_food(message.text):
-        order[(message.id, captured_user)] = message.text
-        logging.info(f'adding {message.text} to the order {order}')
-        if captured_user not in users: users.append(captured_user)
-
-        await message.reply_text('تم التعديل' if is_edit else 'تمت الإضافة')
-    else:
-        logging.warning(f'{message.text} is not food, skipping...')
+    # no await
+    asyncio.create_task(capture())  # noinspection PyTypeChecker
 
 
 @bot.command(name="ping", desc="اختبار البوت")
