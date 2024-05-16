@@ -9,7 +9,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 import food
-from app import BotApp
+from telebot import BotApp
 
 bot = BotApp()
 users = []
@@ -122,5 +122,5 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
 
 
 if __name__ == '__main__':
-    bot.help()
+    bot.help(desc="عرض المساعدة")
     bot.application.run_polling(allowed_updates=Update.ALL_TYPES)
