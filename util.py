@@ -1,4 +1,3 @@
-import asyncio
 import time
 from typing import Callable, Any
 
@@ -14,10 +13,3 @@ def retry_function(func: Callable, retries: int = 5, delay: int = 1, *args, **kw
             print(f"Attempt calling {func} #{attempts} failed with error: {e}. Retrying in {delay} seconds...")
             time.sleep(delay)
     raise Exception(f"Function {func} failed after {retries} attempts")
-
-
-def run_async_function(async_func, *args, **kwargs):
-    async def wrapper():
-        await async_func(*args, **kwargs)
-
-    retry_function(asyncio.run, main=wrapper())
