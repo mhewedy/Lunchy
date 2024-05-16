@@ -12,7 +12,7 @@ def _is_food(text):
 
     request = f"Does this text contain food (Arabic/English) name (answer in English only by yes/no only): {text}"
     response = client.chat.completions.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": request}],
     )
     logging.info(f"request: {request}, response: {response.choices[0].message.content}")

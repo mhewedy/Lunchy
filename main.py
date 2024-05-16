@@ -5,11 +5,11 @@ import os
 import random
 import threading
 
+from telebot import BotApp
 from telegram import Update
 from telegram.ext import ContextTypes
 
 import food
-from telebot import BotApp
 
 bot = BotApp()
 users = []
@@ -17,24 +17,23 @@ order = {}
 
 
 @bot.command(text=True)
-async def capture_users_and_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    threading.Thread(target=_capture_order, args=(update,)).start()
+
+
+def _capture_order(update: Update):
     global users, order
-    msg = update.edited_message if update.edited_message else update.message
 
+    message = update.edited_message if update.edited_message else update.message
     captured_user = f'{update.effective_user.first_name} {update.effective_user.last_name or ""}'
-    if captured_user not in users:
-        users.append(captured_user)
-        logging.info(f'user {captured_user} added!')
 
-    threading.Thread(target=check_food, args=(msg, captured_user)).start()
-
-
-def check_food(msg, captured_user):
-    if food.is_food(msg.text):
-        order[(msg.id, captured_user)] = msg.text
-        logging.info(f'adding {msg.text} to the order {order}')
+    if food.is_food(message.text):
+        order[(message.id, captured_user)] = message.text
+        logging.info(f'adding {message.text} to the order {order}')
+        if captured_user not in users: users.append(captured_user)
+        # message.reply_text('تمت الإضافة')
     else:
-        logging.warning(f'{msg.text} is not food, skipping...')
+        logging.warning(f'{message.text} is not food, skipping...')
 
 
 @bot.command(name="ping", desc="اختبار البوت")
@@ -87,14 +86,11 @@ async def summarize_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @bot.command(name="about", desc="عن البوت")
 async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global users
-    await update.message.reply_text("""
-يعمل البوت تلقائياً خلال ساعات الغداء، مما يلغي الحاجة إلى الأوامر اليدوية في إدارة البوت إذا كنت تفضل عدم استخدامها.
-
-خلال المحادثات التي تسبق وقت الغداء، يقوم البوت بتسجيل أسماء المشاركين. وعندما يقترب وقت الغداء، يقوم البوت بتحديد اسم بشكل عشوائي من القائمة.
-
-لديك السيطرة على القائمة من خلال أوامر القائمة مثل عرضها، ومسحها، وإضافة عناصر إليها. بالإضافة إلى ذلك، يمكنك تسريع عملية تحديد الاسم في أي وقت.
-    """)
+    await update.message.reply_text(
+        'لانشي بوت مساعدك في طلب الغداء\n\n'
+        'تقوم فكرة عمل البوت بأنه يقوم بفحص الرسائل و إذا كانت الرسالة تحتوي على اسم طعام، '
+        'يقوم البوت بإضافة اسم المرسل لقائمة المستخدمين المحتمل أن يتم اختياره لطلب الغداء'
+    )
 
 
 @bot.job(time=os.getenv("HEADS_UP_TIME", "08:00"))
