@@ -49,9 +49,8 @@ class UserSelector:
             logging.warning(f'{selected} was in excluded history: {excluded_users}, re-selecting...')
             return self.select(users)
         else:
-            self.history.append(selected)
-            # always keep the last 2 elements in the history, for comparison
-            self.history = self.history[-2:]
+            logging.info(f'users: {users}, selected user is: {selected}')
+            self.history = (self.history + [selected])[-2:]
             return selected
 
 

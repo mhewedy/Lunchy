@@ -122,7 +122,6 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
     users = [user for (_, user), _ in orders.items()]
     if users:
         selected = userSelector.select(users)
-        logging.info(f'we have this list of users: {users}, randomly selected user is: {selected}')
         await context.bot.send_message(chat_id=chat_id, text=util.get_congrats_msg() + f" {selected} 🎉")
     else:
         logging.warning(f'user list might be empty: {users}')
