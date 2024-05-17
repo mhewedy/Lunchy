@@ -10,7 +10,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 import food
-from util import current_user, is_admin
+from util import current_user, is_admin, get_congrats_msg
 
 bot = BotApp()
 orders = {}
@@ -117,7 +117,7 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
     if len(users) > 0:
         selected = random.choice(users)
         logging.info(f'we have this list of users: {users}, randomly selected user is: {selected}')
-        await context.bot.send_message(chat_id=chat_id, text="صاحب الحظ السعيد اليوم هو" + f" {selected} 🎉")
+        await context.bot.send_message(chat_id=chat_id, text=get_congrats_msg() + f" {selected} 🎉")
     else:
         logging.warning(f'user list might be empty: {users}')
         await context.bot.send_message(chat_id=chat_id, text="قائمة الطلبات فارغة")

@@ -1,3 +1,4 @@
+import random
 import time
 from typing import Callable, Any
 
@@ -30,3 +31,12 @@ async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
             return True
 
     return False
+
+
+def get_congrats_msg():
+    return random.choice([
+        "صاحب الحظ السعيد اليوم هو",
+        "يا هناك يا سعدك يا",
+        "اليوم يومك النهارده يا",
+        "مبروك عليك ... هتطلب لنا اليوم يا"
+    ])
