@@ -4,6 +4,7 @@ import asyncio
 import logging
 import os
 import random
+from datetime import datetime
 
 from telebot import BotApp
 from telegram import Update
@@ -74,11 +75,11 @@ async def yalla_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 @bot.command(name="clear", desc="مسح جميع الطلبات")
 async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global orders
     if not await is_admin(update, context):
         await update.message.reply_text("هذه الخاصية متاحة فقط للأدمن")
         return
 
+    global orders
     orders = {}
     await update.message.reply_text("تم مسح جميع الطلبات بنجاح")
 
@@ -102,6 +103,10 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @bot.job(time=os.getenv("HEADS_UP_TIME", "08:00"))
 async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
+    if datetime.today().weekday() in [4, 5]:
+        logging.info('today is weekend, job will be suspended')
+        return
+
     global orders
     orders = {}
     await context.bot.send_message(chat_id, text="يلا يا شباب أبدأو ضيفو طلابتكم")
