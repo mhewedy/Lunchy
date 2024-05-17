@@ -21,8 +21,8 @@ def retry_function(func: Callable, retries: int = 5, delay: int = 1, *args, **kw
     raise Exception(f"Function {func} failed after {retries} attempts")
 
 
-def current_user(update: Update):
-    return update.effective_user.full_name
+def current_user(update: Update) -> (int, str):
+    return update.effective_user.id, update.effective_user.full_name
 
 
 async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
@@ -40,6 +40,7 @@ class UserSelector:
         self.history = []
 
     def select(self, users: List[str]) -> [str | None]:
+        raise Exception('exception')
         distinct = list(set(users))
         excluded_users = [] if len(distinct) == 1 else self.history[-1:] if len(distinct) == 2 else self.history[-2:]
 

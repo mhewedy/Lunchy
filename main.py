@@ -7,6 +7,7 @@ from datetime import datetime
 
 from telebot import BotApp
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
 import food
@@ -64,7 +65,7 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("لا توجد طلبات")
         return
 
-    food_list = "\n".join(f'{u} -> {o}' for (_, u), o in orders.items())
+    food_list = "\n".join(f'{u} -> {o}' for (_, (_, u)), o in orders.items())
     logging.info(food_list)
     await update.message.reply_text(food_list)
 
@@ -121,8 +122,10 @@ async def send_lunch_selection(context: ContextTypes.DEFAULT_TYPE, chat_id):
 async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
     users = [user for (_, user), _ in orders.items()]
     if users:
-        selected = userSelector.select(users)
-        await context.bot.send_message(chat_id=chat_id, text=util.get_congrats_msg() + f" {selected} 🎉")
+        uid, u = userSelector.select(users)
+        mention_text = f"<a href='tg://user?id={uid}'>{u}</a>"
+        await context.bot.send_message(chat_id=chat_id, text=util.get_congrats_msg() + f" {mention_text}🎉",
+                                       parse_mode=ParseMode.HTML)
     else:
         logging.warning(f'user list might be empty: {users}')
         await context.bot.send_message(chat_id=chat_id, text="قائمة الطلبات فارغة")
@@ -130,4 +133,5 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
 
 if __name__ == '__main__':
     bot.help(desc="عرض المساعدة")
-    bot.application.run_polling(allowed_updates=Update.ALL_TYPES)
+    while True:
+        bot.application.run_polling(allowed_updates=Update.ALL_TYPES)
