@@ -3,7 +3,6 @@
 import asyncio
 import logging
 import os
-import random
 from datetime import datetime
 
 from telebot import BotApp
@@ -11,9 +10,11 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 import food
-from util import current_user, is_admin, get_congrats_msg
+import util
+from util import UserSelector
 
 bot = BotApp()
+userSelector = UserSelector()
 orders = {}
 
 
@@ -23,7 +24,7 @@ async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         (message, is_edit) = (update.message, False) if update.message else (update.edited_message, True)
 
         if food.is_food(message.text):
-            user = current_user(update)
+            user = util.current_user(update)
             orders[(message.id, user)] = message.text
             logging.info(f'adding {message.text} to the order {orders}')
 
@@ -42,14 +43,14 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("خطأ، قم بكتابة الطلب")
         return
 
-    user = current_user(update)
+    user = util.current_user(update)
     orders[(update.message.id, user)] = order
     await update.message.reply_text('تمت الإضافة')
 
 
 @bot.command(name="delete", desc="مسح طلبك")
 async def delete_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = current_user(update)
+    user = util.current_user(update)
     for (msg_id, u), _ in list(orders.items()):
         if user == u:
             del orders[(msg_id, u)]
@@ -75,7 +76,7 @@ async def yalla_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 @bot.command(name="clear", desc="مسح جميع الطلبات")
 async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not await is_admin(update, context):
+    if not await util.is_admin(update, context):
         await update.message.reply_text("هذه الخاصية متاحة فقط للأدمن")
         return
 
@@ -119,10 +120,10 @@ async def send_lunch_selection(context: ContextTypes.DEFAULT_TYPE, chat_id):
 
 async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
     users = [user for (_, user), _ in orders.items()]
-    if len(users) > 0:
-        selected = random.choice(users)
+    if users:
+        selected = userSelector.select(users)
         logging.info(f'we have this list of users: {users}, randomly selected user is: {selected}')
-        await context.bot.send_message(chat_id=chat_id, text=get_congrats_msg() + f" {selected} 🎉")
+        await context.bot.send_message(chat_id=chat_id, text=util.get_congrats_msg() + f" {selected} 🎉")
     else:
         logging.warning(f'user list might be empty: {users}')
         await context.bot.send_message(chat_id=chat_id, text="قائمة الطلبات فارغة")

@@ -1,6 +1,8 @@
+import logging
 import random
 import time
-from typing import Callable, Any
+from typing import Callable
+from typing import List, Any
 
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -31,6 +33,26 @@ async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
             return True
 
     return False
+
+
+class UserSelector:
+    def __init__(self):
+        self.history = []
+
+    def select(self, users: List[str]) -> [str | None]:
+        distinct = list(set(users))
+        excluded_users = [] if len(distinct) == 1 else self.history[-1:] if len(distinct) == 2 else self.history[-2:]
+
+        selected = random.choice(users)
+
+        if selected in excluded_users:
+            logging.warning(f'{selected} was in excluded history: {excluded_users}, re-selecting...')
+            return self.select(users)
+        else:
+            self.history.append(selected)
+            # always keep the last 2 elements in the history, for comparison
+            self.history = self.history[-2:]
+            return selected
 
 
 def get_congrats_msg():
