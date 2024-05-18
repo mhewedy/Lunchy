@@ -37,7 +37,7 @@ async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     asyncio.create_task(capture())  # noinspection PyTypeChecker
 
 
-@bot.command(name="add", desc="*إضافة طلبك")
+@bot.command(name="add", desc="إضافة طلبك (فقط إذا لم يتم إضافته بشكل تلقائي)")
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order = " ".join(context.args)
     if not order:
@@ -133,5 +133,4 @@ async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
 
 if __name__ == '__main__':
     bot.help(desc="عرض المساعدة")
-    while True:
-        bot.application.run_polling(allowed_updates=Update.ALL_TYPES)
+    bot.application.run_polling(allowed_updates=Update.ALL_TYPES)

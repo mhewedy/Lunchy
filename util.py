@@ -38,11 +38,16 @@ async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
 class UserSelector:
     def __init__(self):
         self.history = []
+        self.selection_gap = 2
 
     def select(self, users: List[str]) -> [str | None]:
-        raise Exception('exception')
-        distinct = list(set(users))
-        excluded_users = [] if len(distinct) == 1 else self.history[-1:] if len(distinct) == 2 else self.history[-2:]
+        if not users:
+            raise ValueError('users list should not be empty')
+
+        uniq_len = len(list(set(users)))
+        excluded_users = self.history[
+                         len(self.history) - (uniq_len - 1 if uniq_len <= self.selection_gap else self.selection_gap):
+                         ]
 
         selected = random.choice(users)
 
