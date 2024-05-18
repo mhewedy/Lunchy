@@ -1,8 +1,8 @@
 import logging
 import random
 import time
+from typing import Any
 from typing import Callable
-from typing import List, Any
 
 from telegram import Update
 from telegram.ext import ContextTypes
@@ -40,7 +40,7 @@ class UserSelector:
         self.history = []
         self.selection_gap = 2
 
-    def select(self, users: List[str]) -> [str | None]:
+    def select(self, users):
         if not users:
             raise ValueError('users list should not be empty')
 

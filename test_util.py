@@ -51,6 +51,16 @@ class TestUserSelector(unittest.TestCase):
             selected = selector.select(users)
             self.assertEqual(selected, expected_selection)
 
+    def test_select_non_excluded_3_users_with_ids(self):
+        selector = UserSelector()
+        users = [(1, "Alice"), (1, "Alice"), (2, "Bob"), (2, "Bob"), (3, "Charlie"), (3, "Charlie"), (3, "Charlie")]
+        selector.history = [(1, "Alice"), (2, "Bob"), (3, "Charlie")]
+
+        expected_selections = [(1, "Alice"), (2, "Bob"), (3, "Charlie"), (1, "Alice"), (2, "Bob"), (3, "Charlie")]
+        for expected_selection in expected_selections:
+            selected = selector.select(users)
+            self.assertEqual(selected, expected_selection)
+
     def test_select_never_picks_last_n_from_history(self):
         for _ in range(100):
             selector = UserSelector()
