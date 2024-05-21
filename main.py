@@ -75,7 +75,7 @@ async def yalla_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await select_user(context, update.message.chat_id)
 
 
-@bot.command(name="clear", desc="مسح جميع الطلبات")
+@bot.command(name="clear", desc="مسح جميع الطلبات", hidden=True)
 async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not await util.is_admin(update, context):
         await update.message.reply_text("هذه الخاصية متاحة فقط للأدمن")
@@ -83,6 +83,8 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     global orders
     orders = {}
+    if context.args == "+user_selection_history":
+        userSelector.clear_history()
     await update.message.reply_text("تم مسح جميع الطلبات بنجاح")
 
 

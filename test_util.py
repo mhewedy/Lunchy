@@ -34,7 +34,7 @@ class TestUserSelector(unittest.TestCase):
     def test_select_non_excluded_from_2_users(self):
         selector = UserSelector()
         users = ["Alice", "Bob", "Bob", "Bob", "Bob"]
-        selector.history = ["Alice", "Bob", "Alice"]
+        selector.history_manager.history = ["Alice", "Bob", "Alice"]
 
         expected_selections = ["Bob", "Alice", "Bob", "Alice"]
         for expected_selection in expected_selections:
@@ -44,7 +44,7 @@ class TestUserSelector(unittest.TestCase):
     def test_select_non_excluded_3_users(self):
         selector = UserSelector()
         users = ["Alice", "Alice", "Bob", "Bob", "Charlie", "Charlie", "Charlie"]
-        selector.history = ["Alice", "Bob", "Charlie"]
+        selector.history_manager.history = ["Alice", "Bob", "Charlie"]
 
         expected_selections = ["Alice", "Bob", "Charlie", "Alice", "Bob", "Charlie"]
         for expected_selection in expected_selections:
@@ -54,7 +54,7 @@ class TestUserSelector(unittest.TestCase):
     def test_select_non_excluded_3_users_with_ids(self):
         selector = UserSelector()
         users = [(1, "Alice"), (1, "Alice"), (2, "Bob"), (2, "Bob"), (3, "Charlie"), (3, "Charlie"), (3, "Charlie")]
-        selector.history = [(1, "Alice"), (2, "Bob"), (3, "Charlie")]
+        selector.history_manager.history = [(1, "Alice"), (2, "Bob"), (3, "Charlie")]
 
         expected_selections = [(1, "Alice"), (2, "Bob"), (3, "Charlie"), (1, "Alice"), (2, "Bob"), (3, "Charlie")]
         for expected_selection in expected_selections:
@@ -66,7 +66,7 @@ class TestUserSelector(unittest.TestCase):
             selector = UserSelector()
             users = \
                 ["Alice", "Alice", "Bob", "Bob", "Charlie", "Charlie", "Charlie", "Diana", "Diana", "David", "David"]
-            selector.history = ["Alice", "Bob", "Charlie", "Diana"]
+            selector.history_manager.history = ["Alice", "Bob", "Charlie", "Diana"]
             selected = selector.select(users)
             self.assertIn(selected, ["Alice", "Bob", "David"])
 
@@ -77,7 +77,7 @@ class TestUserSelector(unittest.TestCase):
         for _ in range(100):
             selected = selector.select(users)
             selections.append(selected)
-        self.assertEqual(selector.history, selections[-selector.selection_gap:])
+        self.assertEqual(selector.history_manager.history, selections[-selector.selection_gap:])
 
 
 if __name__ == "__main__":

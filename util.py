@@ -1,4 +1,6 @@
+import json
 import logging
+import os
 import random
 import time
 from typing import Any
@@ -35,20 +37,61 @@ async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     return False
 
 
-class UserSelector:
+class HistoryManager:
     def __init__(self):
         self.history = []
+
+    def load_history(self):
+        pass
+
+    def save_history(self):
+        pass
+
+
+class InMemoryHistoryManager(HistoryManager):
+    def __init__(self):
+        super().__init__()
+
+
+class FileSystemHistoryManager(HistoryManager):
+    def __init__(self, file_path=None):
+        super().__init__()
+        if file_path is None:
+            file_path = os.path.expanduser('~/.lunchy/history.json')
+        self.file_path = file_path
+        self.load_history()
+
+    def load_history(self):
+        directory = os.path.dirname(self.file_path)
+        if directory and not os.path.exists(directory):
+            os.makedirs(directory)
+
+        if os.path.exists(self.file_path):
+            with open(self.file_path, 'r') as file:
+                self.history = json.load(file)
+        else:
+            self.history = []
+            self.save_history()
+
+    def save_history(self):
+        with open(self.file_path, 'w') as file:
+            json.dump(self.history, file)
+
+
+class UserSelector:
+    def __init__(self, history_manager=InMemoryHistoryManager()):
         self.selection_gap = 2
+        self.history_manager = history_manager
 
     def select(self, users):
         if not users:
             raise ValueError('users list should not be empty')
 
         uniq_len = len(list(set(users)))
-        excluded_users = self.history[
-                         len(self.history) - (uniq_len - 1 if uniq_len <= self.selection_gap else self.selection_gap):
+        excluded_users = self.history_manager.history[
+                         len(self.history_manager.history) -
+                         (uniq_len - 1 if uniq_len <= self.selection_gap else self.selection_gap):
                          ]
-
         selected = random.choice(users)
 
         if selected in excluded_users:
@@ -56,8 +99,12 @@ class UserSelector:
             return self.select(users)
         else:
             logging.info(f'users: {users}, selected user is: {selected}')
-            self.history = (self.history + [selected])[-2:]
+            self.history_manager.history = (self.history_manager.history + [selected])[-2:]
+            self.history_manager.save_history()
             return selected
+
+    def clear_history(self):
+        self.history_manager.history = []
 
 
 def get_congrats_msg():

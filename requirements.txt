@@ -30,7 +30,7 @@ pytz==2024.1
 requests==2.31.0
 six==1.16.0
 sniffio==1.3.1
-telebot @ git+https://github.com/mhewedy/telebot@02ac2fa01c87d9ccd8aeb5293e6ee2d0bf299e44
+telebot @ git+https://github.com/mhewedy/telebot@7baf8e4204457f62364bde0a385aed7e6cf4612c
 telegram==0.0.1
 tornado==6.4
 tqdm==4.66.4
