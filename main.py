@@ -37,7 +37,7 @@ async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     asyncio.create_task(capture())  # noinspection PyTypeChecker
 
 
-@bot.command(name="add", desc="إضافة طلبك")
+@bot.command(name="add", desc="*إضافة طلبك")
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order = " ".join(context.args)
     if not order:
