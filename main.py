@@ -12,7 +12,7 @@ from telegram.ext import ContextTypes
 
 import food
 import util
-from util import UserSelector
+from selection import UserSelector
 
 bot = BotApp()
 userSelector = UserSelector()
@@ -37,7 +37,7 @@ async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     asyncio.create_task(capture())  # noinspection PyTypeChecker
 
 
-@bot.command(name="add", desc="إضافة طلبك (فقط إذا لم يتم إضافته بشكل تلقائي)")
+@bot.command(name="add", desc="إضافة طلبك")
 async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     order = " ".join(context.args)
     if not order:
@@ -52,11 +52,14 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @bot.command(name="delete", desc="مسح طلبك")
 async def delete_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = util.current_user(update)
-    for (msg_id, u), _ in list(orders.items()):
+    not_found = True
+    for (msg_id, u), o in list(orders.items()):
         if user == u:
+            not_found = False
             del orders[(msg_id, u)]
+            await update.message.reply_text(f'تم مسح طلبك "{o}" بنجاح')
 
-    await update.message.reply_text('تمت مسح طلبك بنجاح')
+    if not_found: await update.message.reply_text('لا توجد طلبات')
 
 
 @bot.command(name="list", desc="عرض الطلبات")
@@ -83,9 +86,11 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     global orders
     orders = {}
-    if context.args == "+selection_history":
+    msg = "تم مسح جميع الطلبات بنجاح"
+    if "+selection_history" in context.args:
+        msg += " و تم مسح جميع اختيارات المستخدمين أيضا"
         userSelector.clear_history()
-    await update.message.reply_text("تم مسح جميع الطلبات بنجاح")
+    await update.message.reply_text(msg)
 
 
 @bot.command(name="ping", desc="اختبار البوت")
