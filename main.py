@@ -83,7 +83,7 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     global orders
     orders = {}
-    if context.args == "+user_selection_history":
+    if context.args == "+selection_history":
         userSelector.clear_history()
     await update.message.reply_text("تم مسح جميع الطلبات بنجاح")
 

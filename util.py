@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import time
+from abc import abstractmethod, ABC
 from typing import Any
 from typing import Callable
 
@@ -37,20 +38,21 @@ async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     return False
 
 
-class HistoryManager:
+class HistoryManager(ABC):
     def __init__(self):
         self.history = []
 
+    @abstractmethod
     def load_history(self):
         pass
 
-    def save_history(self):
-        pass
+    def save_history(self, h):
+        self.history = h
 
 
 class InMemoryHistoryManager(HistoryManager):
-    def __init__(self):
-        super().__init__()
+    def load_history(self):
+        pass
 
 
 class FileSystemHistoryManager(HistoryManager):
@@ -71,16 +73,16 @@ class FileSystemHistoryManager(HistoryManager):
                 self.history = json.load(file)
         else:
             self.history = []
-            self.save_history()
+            self.save_history(self.history)
 
-    def save_history(self):
+    def save_history(self, h):
         with open(self.file_path, 'w') as file:
             json.dump(self.history, file)
 
 
 class UserSelector:
-    def __init__(self, history_manager=InMemoryHistoryManager()):
-        self.selection_gap = 2
+    def __init__(self, selection_gap=0, history_manager=InMemoryHistoryManager()):
+        self.selection_gap = selection_gap
         self.history_manager = history_manager
 
     def select(self, users):
@@ -99,12 +101,11 @@ class UserSelector:
             return self.select(users)
         else:
             logging.info(f'users: {users}, selected user is: {selected}')
-            self.history_manager.history = (self.history_manager.history + [selected])[-2:]
-            self.history_manager.save_history()
+            self.history_manager.save_history((self.history_manager.history + [selected])[-2:])
             return selected
 
     def clear_history(self):
-        self.history_manager.history = []
+        self.history_manager.save_history([])
 
 
 def get_congrats_msg():

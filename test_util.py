@@ -31,8 +31,8 @@ class TestUserSelector(unittest.TestCase):
         selected = selector.select(users)
         self.assertEqual(selected, "Alice")
 
-    def test_select_non_excluded_from_2_users(self):
-        selector = UserSelector()
+    def test_select_non_excluded_from_2_users_with_2_selection_gap(self):
+        selector = UserSelector(selection_gap=2)
         users = ["Alice", "Bob", "Bob", "Bob", "Bob"]
         selector.history_manager.history = ["Alice", "Bob", "Alice"]
 
@@ -41,8 +41,8 @@ class TestUserSelector(unittest.TestCase):
             selected = selector.select(users)
             self.assertEqual(selected, expected_selection)
 
-    def test_select_non_excluded_3_users(self):
-        selector = UserSelector()
+    def test_select_non_excluded_3_users_with_2_selection_gap(self):
+        selector = UserSelector(selection_gap=2)
         users = ["Alice", "Alice", "Bob", "Bob", "Charlie", "Charlie", "Charlie"]
         selector.history_manager.history = ["Alice", "Bob", "Charlie"]
 
@@ -51,8 +51,40 @@ class TestUserSelector(unittest.TestCase):
             selected = selector.select(users)
             self.assertEqual(selected, expected_selection)
 
+    def test_select_non_excluded_from_2_users_with_0_selection_gap(self):
+        selector = UserSelector(selection_gap=0)
+        users = ["Alice", "Bob", "Bob", "Bob", "Bob"]
+        selector.history_manager.history = ["Alice", "Bob", "Alice"]
+
+        selected = selector.select(users)
+        self.assertIn(selected, ["Alice", "Bob"])
+
+    def test_select_non_excluded_3_users_with_0_selection_gap(self):
+        count = 0
+        for _ in range(0, 100):
+            selector = UserSelector(selection_gap=0)
+            users = ["Alice", "Alice", "Bob", "Bob", "Charlie", "Charlie", "Charlie"]
+            selector.history_manager.history = ["Alice", "Bob", "Charlie"]
+            selected = selector.select(users)
+            if selected in ["Bob", "Charlie"]:
+                count += 1
+
+        self.assertGreater(count, 0)
+
+    def test_select_non_excluded_3_users_with_0_selection_gap_2(self):
+        count = 0
+        for _ in range(0, 100):
+            selector = UserSelector(selection_gap=2)
+            users = ["Alice", "Alice", "Bob", "Bob", "Charlie", "Charlie", "Charlie"]
+            selector.history_manager.history = ["Alice", "Bob", "Charlie"]
+            selected = selector.select(users)
+            if selected in ["Bob", "Charlie"]:
+                count += 1
+
+        self.assertEqual(count, 0)
+
     def test_select_non_excluded_3_users_with_ids(self):
-        selector = UserSelector()
+        selector = UserSelector(selection_gap=2)
         users = [(1, "Alice"), (1, "Alice"), (2, "Bob"), (2, "Bob"), (3, "Charlie"), (3, "Charlie"), (3, "Charlie")]
         selector.history_manager.history = [(1, "Alice"), (2, "Bob"), (3, "Charlie")]
 
@@ -63,7 +95,7 @@ class TestUserSelector(unittest.TestCase):
 
     def test_select_never_picks_last_n_from_history(self):
         for _ in range(100):
-            selector = UserSelector()
+            selector = UserSelector(selection_gap=2)
             users = \
                 ["Alice", "Alice", "Bob", "Bob", "Charlie", "Charlie", "Charlie", "Diana", "Diana", "David", "David"]
             selector.history_manager.history = ["Alice", "Bob", "Charlie", "Diana"]
@@ -71,7 +103,7 @@ class TestUserSelector(unittest.TestCase):
             self.assertIn(selected, ["Alice", "Bob", "David"])
 
     def test_history_maintenance(self):
-        selector = UserSelector()
+        selector = UserSelector(selection_gap=2)
         users = ["Alice", "Bob", "Charlie", "Diana"]
         selections = []
         for _ in range(100):
