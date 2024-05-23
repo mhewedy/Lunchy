@@ -1,6 +1,7 @@
 import ast
 import json
 import logging
+import os
 from abc import ABC
 from pathlib import Path
 
@@ -30,7 +31,7 @@ class InMemoryOrderManager(OrderManager):
 
 
 class FileSystemOrderManager(OrderManager):
-    def __init__(self, file_path):
+    def __init__(self, file_path=os.getenv('VOLUME_ROOT_FS', '/tmp') + '/orders.json'):
         super().__init__()
         self.file_path = Path(file_path)
         logging.info('loading orders from: {}'.format(self.file_path))

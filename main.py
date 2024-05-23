@@ -17,7 +17,7 @@ from selection import UserSelector
 
 bot = BotApp()
 userSelector = UserSelector()
-order_manager = FileSystemOrderManager(file_path=os.getenv('VOLUME_ROOT_FS', '/tmp') + '/orders.json')
+order_manager = FileSystemOrderManager()
 
 
 @bot.command(text=True)
