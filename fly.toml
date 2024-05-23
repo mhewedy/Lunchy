@@ -12,7 +12,15 @@ primary_region = 'cdg'
 
 [env]
   PORT = '0'
+  #CHAT_ID = '' #secret
+  #BOT_TOKEN = '' #secret
+  VOLUME_ROOT_FS = '/data'
 
 [[vm]]
   size = 'shared-cpu-1x'
   memory = "256MB"
+
+[[mounts]]
+  source = 'lunchy_data'
+  destination = '/data'
+  initial_size = '1gb'

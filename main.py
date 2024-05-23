@@ -12,11 +12,12 @@ from telegram.ext import ContextTypes
 
 import food
 import util
+from order_manager import FileSystemOrderManager
 from selection import UserSelector
 
 bot = BotApp()
 userSelector = UserSelector()
-orders = {}
+order_manager = FileSystemOrderManager(file_path=os.getenv('VOLUME_ROOT_FS', '/tmp') + '/orders.json')
 
 
 @bot.command(text=True)
@@ -26,8 +27,8 @@ async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
         if food.is_food(message.text):
             user = util.current_user(update)
-            orders[(message.id, user)] = message.text
-            logging.info(f'adding {message.text} to the order {orders}')
+            order_manager.add_order(message.id, user, message.text)
+            logging.info(f'adding {message.text} to the order {order_manager.list_orders()}')
 
             await message.reply_text('تم التعديل' if is_edit else 'تمت الإضافة')
         else:
@@ -45,26 +46,25 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     user = util.current_user(update)
-    orders[(update.message.id, user)] = order
+    order_manager.add_order(update.message.id, user, order)
     await update.message.reply_text('تمت الإضافة')
 
 
 @bot.command(name="delete", desc="مسح طلبك")
 async def delete_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = util.current_user(update)
-    not_found = True
-    for (msg_id, u), o in list(orders.items()):
-        if user == u:
-            not_found = False
-            del orders[(msg_id, u)]
+    deleted_orders = order_manager.delete_order(user)
+    if deleted_orders:
+        for (_, _), o in deleted_orders:
             await update.message.reply_text(f'تم مسح طلبك "{o}" بنجاح')
-
-    if not_found: await update.message.reply_text('لا توجد طلبات')
+    else:
+        await update.message.reply_text('لا توجد طلبات')
 
 
 @bot.command(name="list", desc="عرض الطلبات")
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if len(orders) == 0:
+    orders = order_manager.list_orders()
+    if not orders:
         await update.message.reply_text("لا توجد طلبات")
         return
 
@@ -84,8 +84,7 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("هذه الخاصية متاحة فقط للأدمن")
         return
 
-    global orders
-    orders = {}
+    order_manager.clear_orders()
     msg = "تم مسح جميع الطلبات بنجاح"
     if "+selection_history" in context.args:
         msg += " و تم مسح جميع اختيارات المستخدمين أيضا"
@@ -116,8 +115,7 @@ async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
         logging.info('today is weekend, job will be suspended')
         return
 
-    global orders
-    orders = {}
+    order_manager.clear_orders()
     await context.bot.send_message(chat_id, text="يلا يا شباب أبدأو ضيفو طلابتكم")
 
 
@@ -127,7 +125,7 @@ async def send_lunch_selection(context: ContextTypes.DEFAULT_TYPE, chat_id):
 
 
 async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
-    users = [user for (_, user), _ in orders.items()]
+    users = [user for (_, user), _ in order_manager.list_orders().items()]
     if users:
         uid, u = userSelector.select(users)
         mention_text = f"<a href='tg://user?id={uid}'>{u}</a>"
