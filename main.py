@@ -12,7 +12,7 @@ from telegram.ext import ContextTypes
 
 import food
 import util
-from order_manager import FileSystemOrderManager
+from order import FileSystemOrderManager
 from selection import UserSelector
 
 bot = BotApp()
