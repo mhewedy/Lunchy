@@ -1,3 +1,4 @@
+import os
 import random
 import time
 from typing import Any
@@ -41,3 +42,7 @@ def get_congrats_msg():
         "اليوم يومك النهارده يا",
         "مبروك عليك ... هتطلب لنا اليوم يا"
     ])
+
+
+def get_root_fs():
+    return os.getenv('VOLUME_ROOT_FS', '/tmp')

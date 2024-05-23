@@ -3,6 +3,7 @@ import logging
 import g4f.models
 from g4f.client import Client
 
+import cache
 from util import retry_function
 
 client = Client()
@@ -23,8 +24,13 @@ def _is_food(text):
 
 
 def is_food(text):
+    result = cache.get('food', text)
+    if result is not None: return result
+
     try:
-        return retry_function(_is_food, text=text)
+        result = retry_function(_is_food, text=text)
+        cache.put('food', text, result)
+        return result
     except Exception as e:
         logging.error(e)
         return False

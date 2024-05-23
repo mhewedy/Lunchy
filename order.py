@@ -1,9 +1,11 @@
 import ast
 import json
 import logging
-import os
 from abc import ABC
 from pathlib import Path
+
+import cache
+import util
 
 
 class OrderManager(ABC):
@@ -11,6 +13,7 @@ class OrderManager(ABC):
         self.orders = {}
 
     def add_order(self, message_id, user, order):
+        cache.put('food', order, True)
         self.orders[(message_id, user)] = order
 
     def delete_order(self, user):
@@ -31,7 +34,7 @@ class InMemoryOrderManager(OrderManager):
 
 
 class FileSystemOrderManager(OrderManager):
-    def __init__(self, file_path=os.getenv('VOLUME_ROOT_FS', '/tmp') + '/orders.json'):
+    def __init__(self, file_path=util.get_root_fs() + '/orders.json'):
         super().__init__()
         self.file_path = Path(file_path)
         logging.info('loading orders from: {}'.format(self.file_path))
