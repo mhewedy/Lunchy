@@ -4,6 +4,8 @@ import os
 import random
 from abc import abstractmethod, ABC
 
+import util
+
 
 class HistoryManager(ABC):
     def __init__(self):
@@ -23,7 +25,7 @@ class InMemoryHistoryManager(HistoryManager):
 
 
 class FileSystemHistoryManager(HistoryManager):
-    def __init__(self, file_path='~/.lunchy/history.json'):
+    def __init__(self, file_path=util.get_root_fs() + '/selection_history.json'):
         super().__init__()
         self.file_path = os.path.expanduser(file_path)
         self.load_history()
