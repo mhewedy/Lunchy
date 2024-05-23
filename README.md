@@ -9,7 +9,7 @@ A simple Telegram chatbot to suggest who will order the lunch today!
 2. Create a telegram group, add the bot to the group, and make it admin
 3. You need to set the env var `BOT_TOKEN` and `CHAT_ID`. (you get from previous steps, where `CHAT_ID` should refer to the group created in prev step)
 4. Run the app using `python main.py`.
-5. start sending commands in the group (e.g. `/help`), the bot will detect food names as well (using chatgpt)
+5. Start sending commands in the group (e.g. `/help`), the bot will detect food names as well (using chatgpt)
 6. Enjoy!
 
 > This app uses [telebot](https://github.com/mhewedy/telebot) 
