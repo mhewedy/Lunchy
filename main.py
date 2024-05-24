@@ -92,7 +92,7 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         userSelector.clear_history()
     if "+food" in context.args:
         msg += " و تم مسح مخزون الأكلات"
-        cache.clean("food")
+        cache.clear("food")
     await update.message.reply_text(msg)
 
 
