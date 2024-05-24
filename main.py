@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # pylint: disable=unused-argument
 import asyncio
+import calendar
 import logging
 import os
-from datetime import datetime
 
 from telebot import BotApp
 from telegram import Update
@@ -113,19 +113,11 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-@bot.job(time=os.getenv("HEADS_UP_TIME", "08:00"))
+@bot.job(time=os.getenv("HEADS_UP_TIME", "08:00"),
+         days=(calendar.SUNDAY, calendar.MONDAY, calendar.TUESDAY, calendar.WEDNESDAY, calendar.THURSDAY))
 async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
-    if datetime.today().weekday() in [4, 5]:
-        logging.info('today is weekend, job will be suspended')
-        return
-
     order_manager.clear_orders()
     await context.bot.send_message(chat_id, text="يلا يا شباب أبدأو ضيفو طلابتكم")
-
-
-@bot.job(time=os.getenv("SELECTION_TIME", "09:30"), enabled=False)
-async def send_lunch_selection(context: ContextTypes.DEFAULT_TYPE, chat_id):
-    await select_user(context, chat_id)
 
 
 async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
