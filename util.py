@@ -45,4 +45,4 @@ def get_congrats_msg():
 
 
 def get_root_fs():
-    return os.getenv('VOLUME_ROOT_FS', '/tmp')
+    return os.getenv('VOLUME_ROOT_FS', '/tmp') + '/lunchy'
