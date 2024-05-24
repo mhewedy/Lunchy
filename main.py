@@ -10,6 +10,7 @@ from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
 
+import cache
 import food
 import util
 from order import FileSystemOrderManager
@@ -86,9 +87,12 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     order_manager.clear_orders()
     msg = "تم مسح جميع الطلبات بنجاح"
-    if "+selection_history" in context.args:
-        msg += " و تم مسح جميع اختيارات المستخدمين أيضا"
+    if "+selection" in context.args:
+        msg += " و تم مسح جميع اختيارات المستخدمين"
         userSelector.clear_history()
+    if "+food" in context.args:
+        msg += " و تم مسح مخزون الأكلات"
+        cache.clean("food")
     await update.message.reply_text(msg)
 
 
