@@ -29,7 +29,6 @@ def is_food(text):
 
     try:
         result = retry_function(_is_food, text=text)
-        cache.put('food', text, result)
         return result
     except Exception as e:
         logging.error(e)
