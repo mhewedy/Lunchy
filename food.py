@@ -32,4 +32,4 @@ def is_food(text):
         return result
     except Exception as e:
         logging.error(e)
-        return False
+        return None
