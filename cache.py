@@ -5,21 +5,18 @@ import shutil
 
 import util
 
-root_fs_cache = util.get_root_fs() + '/cache'
 
-
-def _cache_path(namespace, key=None):
-    cache_namespace = root_fs_cache + '/' + namespace
+def _get_path(namespace, key=None):
+    ns_cache_path = os.path.join(util.get_root_fs(), 'cache', namespace)
+    os.makedirs(ns_cache_path, exist_ok=True)
     if key:
-        os.makedirs(cache_namespace, exist_ok=True)
-        return os.path.join(cache_namespace, f'{key}.pkl')
-    else:
-        return cache_namespace
+        return os.path.join(str(ns_cache_path), f'{key}.pkl')
+    return ns_cache_path
 
 
 def get(namespace, key):
     try:
-        with open(_cache_path(namespace, f'{key.strip().lower()}'), 'rb') as f:
+        with open(_get_path(namespace, f'{key.strip().lower()}'), 'rb') as f:
             value = pickle.load(f)
             logging.info(f'cache hit for {key} in namespace: {namespace}, with value: {value}')
             return value
@@ -28,14 +25,14 @@ def get(namespace, key):
 
 
 def put(namespace, key, value):
-    with open(_cache_path(namespace, f'{key.strip().lower()}'), 'wb') as f:
+    with open(_get_path(namespace, f'{key.strip().lower()}'), 'wb') as f:
         pickle.dump(value, f)
 
 
 def clear(namespace):
-    cache_namespace = _cache_path(namespace)
-    if os.path.exists(cache_namespace):
-        shutil.rmtree(cache_namespace)
+    namespace_path = _get_path(namespace)
+    if os.path.exists(namespace_path):
+        shutil.rmtree(namespace_path)
         logging.info(f'cache for namespace {namespace} has been cleared.')
     else:
         logging.warning(f'cache for namespace {namespace} does not exist.')
