@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # pylint: disable=unused-argument
 import asyncio
-import calendar
 import logging
 import os
 
+from day import *
 from telebot import BotApp
 from telegram import Update
 from telegram.constants import ParseMode
@@ -113,8 +113,7 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-@bot.job(time=os.getenv("HEADS_UP_TIME", "08:00"),
-         days=(calendar.SUNDAY, calendar.MONDAY, calendar.TUESDAY, calendar.WEDNESDAY, calendar.THURSDAY))
+@bot.job(time=os.getenv("HEADS_UP_TIME", "08:00"), days=(SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY))
 async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
     order_manager.clear_orders()
     await context.bot.send_message(chat_id, text="يلا يا شباب أبدأو ضيفو طلابتكم")
