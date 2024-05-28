@@ -11,7 +11,7 @@ A simple Telegram chatbot to suggest who will order the lunch today!
    the group created in prev step).
 4. Optionally, if you need to persist the data between restarts, configure `VOLUME_ROOT_FS` to point to path of some
    persistent volume (block or network storage)
-5. Run the app using `python main.py`.
+5. Run the app using `BOT_TOKEN=<bot_token> CHAT_ID=<chat_id> python main.py`.
 6. Start sending commands in the group (e.g. `/help`), the bot will detect food names as well (using chatgpt)
 7. Enjoy!
 
