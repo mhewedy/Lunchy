@@ -17,7 +17,7 @@ from order import FileSystemOrderManager
 from selection import UserSelector
 
 bot = BotApp()
-userSelector = UserSelector()
+user_selector = UserSelector()
 order_manager = FileSystemOrderManager()
 
 
@@ -89,7 +89,7 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = "تم مسح جميع الطلبات بنجاح"
     if "+selection" in context.args:
         msg += " و تم مسح جميع اختيارات المستخدمين"
-        userSelector.clear_history()
+        user_selector.clear_history()
     if "+food" in context.args:
         msg += " و تم مسح مخزون الأكلات"
         cache.clear("food")
@@ -122,7 +122,7 @@ async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
 async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
     users = [user for (_, user), _ in order_manager.list_orders().items()]
     if users:
-        uid, u = userSelector.select(users)
+        uid, u = user_selector.select(users)
         mention_text = f"<a href='tg://user?id={uid}'>{u}</a>"
         await context.bot.send_message(chat_id=chat_id, text=util.get_congrats_msg() + f" {mention_text}🎉",
                                        parse_mode=ParseMode.HTML)
