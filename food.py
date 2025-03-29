@@ -31,8 +31,9 @@ def _is_food_gemini(text):
             response_mime_type="text/plain",
         )),
     )
-
-    return next(chunks).text
+    result = "yes" in next(chunks).text.lower()
+    logging.info(f"checking if {text} is food => {result}")
+    return result
 
 
 def is_food(text):
