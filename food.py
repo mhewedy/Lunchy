@@ -1,26 +1,38 @@
 import logging
 
-import g4f.models
-from g4f.client import Client
-
 import cache
 from util import retry_function
 
-client = Client()
+import os
+from google import genai
+from google.genai import types
 
 
-def _is_food(text):
-    logging.info(f"calling is_food for {text}")
+def _is_food_gemini(text):
+    logging.info(f"calling _is_food_gemini for {text}")
 
-    request = f"Does this text contain food (Arabic/English) name (answer in English only by yes/no only): {text}"
-    response = client.chat.completions.create(
-        model=g4f.models.default,
-        messages=[{"role": "user", "content": request}],
+    client = genai.Client(
+        api_key=os.environ.get("GEMINI_API_KEY"),
     )
-    logging.info(f"request: {request}, response: {response.choices[0].message.content}")
-    result = "yes" in response.choices[0].message.content.lower()
-    logging.info(f"checking if {text} is food => {result}")
-    return result
+    model = "gemini-2.0-flash"
+    contents = [
+        types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(
+                    text=f"Does this text contain food (Arabic/English) name (answer in English only by yes/no only): {text}"),
+            ],
+        ),
+    ]
+    chunks = client.models.generate_content_stream(
+        model=model,
+        contents=contents,
+        config=(types.GenerateContentConfig(
+            response_mime_type="text/plain",
+        )),
+    )
+
+    return next(chunks).text
 
 
 def is_food(text):
@@ -28,7 +40,7 @@ def is_food(text):
     if result is not None: return result
 
     try:
-        result = retry_function(_is_food, text=text)
+        result = retry_function(_is_food_gemini, text=text)
         return result
     except Exception as e:
         logging.error(e)

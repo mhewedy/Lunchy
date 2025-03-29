@@ -9,10 +9,11 @@ A simple Telegram chatbot to suggest who will order the lunch today!
 2. Create a telegram group, add the bot to the group, and make it admin.
 3. Set the env var `BOT_TOKEN` and `CHAT_ID`. (you get from previous steps, where `CHAT_ID` should refer to
    the group created in prev step).
-4. Optionally, if you need to persist the data between restarts, configure `VOLUME_ROOT_FS` to point to path of some
+4. if you want to use Google Gemini AI, then obtain and set `GEMINI_API_KEY`
+5. Optionally, if you need to persist the data between restarts, configure `VOLUME_ROOT_FS` to point to path of some
    persistent volume (block or network storage).
-5. Run the app using `BOT_TOKEN=<bot_token> CHAT_ID=<chat_id> python main.py`
-6. Start sending commands in the group (e.g. `/help`), the bot will detect food names as well (using chatgpt).
-7. Enjoy!
+6. Run the app using `BOT_TOKEN=<bot_token> CHAT_ID=<chat_id> python main.py`
+7. Start sending commands in the group (e.g. `/help`), the bot will detect food names as well (using chatgpt).
+8. Enjoy!
 
 > This app built using [telebot](https://github.com/mhewedy/telebot) 
