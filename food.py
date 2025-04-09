@@ -20,7 +20,7 @@ def _is_food_gemini(text):
             role="user",
             parts=[
                 types.Part.from_text(
-                    text=f"Does this text contain food (Arabic/English) name (answer in English only by yes/no only): {text}"),
+                    text=f"Does this full text considered a food name in Arabic or English (answer in English only by yes/no only): {text}"),
             ],
         ),
     ]

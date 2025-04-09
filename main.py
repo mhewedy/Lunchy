@@ -14,6 +14,7 @@ import cache
 import food
 import util
 from order import FileSystemOrderManager
+import order_tracker
 from selection import UserSelector
 
 bot = BotApp()
@@ -76,6 +77,7 @@ async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @bot.command(name="yalla", desc="اختيار اسم عشوائي")
 async def yalla_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    order_tracker.reset_days_without_orders()
     await select_user(context, update.message.chat_id)
 
 
@@ -105,7 +107,7 @@ async def ping_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         '"لانشي بوت" مساعدك في طلب الغداء\n\n'
-        'تقوم فكرة عمل البوت بأنه يقوم بفحص الرسائل و إذا كانت الرسالة تحتوي على اسم طعام، '
+        'تقوم فكرة عمل البوت بأنه يقوم بفحص الرسائل و إذا كانت الرسالة تمثل اسم طعام، '
         'يقوم البوت بإضافة الطلب بشكل آلي إلى قائمة الطلبات\n\n'
         'إذا لم يقم البوت بإضافة الطلب بشكل آلي (ربما لعدم تعرفه على نوع الطعام)، يمكن إضافته عن طريق الأمر "/add" \n\n'
         'في النهاية يمكنك عرض الطلبات الحالية عن طريق الأمر "/list" '
@@ -116,7 +118,11 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @bot.job(time=os.getenv("HEADS_UP_TIME", "08:00"), days=(SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY))
 async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
     order_manager.clear_orders()
-    await context.bot.send_message(chat_id, text="يلا يا شباب أبدأو ضيفو طلابتكم")
+
+    order_tracker.increment_day()
+    order_message = order_tracker.get_order_message()
+    if order_message:
+        await context.bot.send_message(chat_id, text=order_message)
 
 
 async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
