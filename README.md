@@ -1,6 +1,8 @@
 # Lunchy
 
-A simple Telegram chatbot to suggest who will order the lunch today!
+Lunchy is a smart AI-powered Telegram bot designed to fairly and intelligently choose one person from a chat group to be responsible for ordering lunch. Whether you're tired of the same person ordering every day, or you just want to make lunch assignments more fun, Lunchy has your back.
+
+Built with modular components and optional AI integration (via Google Gemini or ChatGPT), Lunchy uses natural language detection to identify food-related conversations and trigger a fair selection process based on configurable criteria.
 
 ## Deployment
 
