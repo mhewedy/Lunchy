@@ -9,14 +9,15 @@ import util
 
 class HistoryManager(ABC):
     def __init__(self):
-        self.history = []
+        # history: {chat_id: [user1, user2, ...]}
+        self.history = {}
 
     @abstractmethod
     def load_history(self):
         pass
 
-    def save_history(self, h):
-        self.history = h
+    def save_history(self, chat_id, h):
+        self.history[chat_id] = h
 
 
 class InMemoryHistoryManager(HistoryManager):
@@ -37,40 +38,47 @@ class FileSystemHistoryManager(HistoryManager):
 
         if os.path.exists(self.file_path):
             with open(self.file_path, 'r') as file:
-                self.history = json.load(file)
+                loaded_history = json.load(file)
+                self.history = {int(chat_id): hist for chat_id, hist in loaded_history.items()}
         else:
-            self.history = []
-            self.save_history(self.history)
+            self.history = {}
+            self.save_history_all()
 
-    def save_history(self, h):
-        super().save_history(h)
+    def save_history(self, chat_id, h):
+        super().save_history(chat_id, h)
+        self.save_history_all()
+
+    def save_history_all(self):
         with open(self.file_path, 'w') as file:
             json.dump(self.history, file)
 
 
 class UserSelector:
-    def __init__(self, exclude_gap=0, history_manager=FileSystemHistoryManager()):
+    def __init__(self, exclude_gap=0, history_manager=None):
         self.exclude_gap = exclude_gap
-        self.history_manager = history_manager
+        self.history_manager = history_manager or FileSystemHistoryManager()
 
-    def select(self, users):
+    def select(self, chat_id, users):
         if not users:
             raise ValueError('users list should not be empty')
 
+        chat_history = self.history_manager.history.get(chat_id, [])
+
         uniq_len = len(list(set(users)))
-        excluded_users = self.history_manager.history[
-                         len(self.history_manager.history) -
-                         (uniq_len - 1 if uniq_len <= self.exclude_gap else self.exclude_gap):
-                         ]
+        excluded_users = chat_history[
+            len(chat_history) -
+            (uniq_len - 1 if uniq_len <= self.exclude_gap else self.exclude_gap):
+        ]
         selected = random.choice(users)
 
         if selected in excluded_users:
             logging.warning(f'{selected} was in excluded history: {excluded_users}, re-selecting...')
-            return self.select(users)
+            return self.select(chat_id, users)
         else:
+            # Save only last 10 selections
             logging.info(f'users: {users}, selected user is: {selected}')
-            self.history_manager.save_history((self.history_manager.history + [selected])[-10:])
+            self.history_manager.save_history(chat_id, (chat_history + [selected])[-10:])
             return selected
 
-    def clear_history(self):
-        self.history_manager.save_history([])
+    def clear_history(self, chat_id):
+        self.history_manager.save_history(chat_id, [])

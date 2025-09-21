@@ -12,7 +12,6 @@ primary_region = 'cdg'
 
 [env]
   PORT = '0'
-  #CHAT_ID = '' #secret
   #BOT_TOKEN = '' #secret
   VOLUME_ROOT_FS = '/data'
 

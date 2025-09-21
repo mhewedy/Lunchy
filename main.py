@@ -29,8 +29,8 @@ async def capture_order(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
         if food.is_food(message.text):
             user = util.current_user(update)
-            order_manager.add_order(message.id, user, message.text)
-            logging.info(f'adding {message.text} to the order {order_manager.list_orders()}')
+            order_manager.add_order(message.chat_id, message.id, user, message.text)
+            logging.info(f'adding {message.text} to the order {order_manager.list_orders(message.chat_id)}')
 
             await message.reply_text('تم التعديل' if is_edit else 'تمت الإضافة')
         else:
@@ -48,14 +48,14 @@ async def add_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     user = util.current_user(update)
-    order_manager.add_order(update.message.id, user, order)
+    order_manager.add_order(update.message.chat_id, update.message.id, user, order)
     await update.message.reply_text('تمت الإضافة')
 
 
 @bot.command(name="delete", desc="مسح طلبك")
 async def delete_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = util.current_user(update)
-    deleted_orders = order_manager.delete_order(user)
+    deleted_orders = order_manager.delete_order(update.message.chat_id, user)
     if deleted_orders:
         for (_, _), o in deleted_orders:
             await update.message.reply_text(f'تم مسح طلبك "{o}" بنجاح')
@@ -65,7 +65,7 @@ async def delete_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @bot.command(name="list", desc="عرض الطلبات")
 async def list_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    orders = order_manager.list_orders()
+    orders = order_manager.list_orders(update.message.chat_id)
     if not orders:
         await update.message.reply_text("لا توجد طلبات")
         return
@@ -87,11 +87,11 @@ async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("هذه الخاصية متاحة فقط للأدمن")
         return
 
-    order_manager.clear_orders()
+    order_manager.clear_orders(update.message.chat_id)
     msg = "تم مسح جميع الطلبات بنجاح"
     if "+selection" in context.args:
         msg += " و تم مسح جميع اختيارات المستخدمين"
-        user_selector.clear_history()
+        user_selector.clear_history(update.message.chat_id)
     if "+food" in context.args:
         msg += " و تم مسح مخزون الأكلات"
         cache.clear("food")
@@ -117,7 +117,7 @@ async def about_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 @bot.job(time=os.getenv("HEADS_UP_TIME", "08:00"), days=(SUNDAY, MONDAY, TUESDAY, WEDNESDAY, THURSDAY))
 async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
-    order_manager.clear_orders()
+    order_manager.clear_orders(chat_id)
 
     order_tracker.increment_day()
     order_message = order_tracker.get_order_message()
@@ -126,9 +126,9 @@ async def send_lunch_headsup(context: ContextTypes.DEFAULT_TYPE, chat_id):
 
 
 async def select_user(context: ContextTypes.DEFAULT_TYPE, chat_id):
-    users = [user for (_, user), _ in order_manager.list_orders().items()]
+    users = [user for (_, user), _ in order_manager.list_orders(chat_id).items()]
     if users:
-        uid, u = user_selector.select(users)
+        uid, u = user_selector.select(chat_id, users)
         mention_text = f"<a href='tg://user?id={uid}'>{u}</a>"
         await context.bot.send_message(chat_id=chat_id, text=util.get_congrats_msg() + f" {mention_text}🎉",
                                        parse_mode=ParseMode.HTML)
