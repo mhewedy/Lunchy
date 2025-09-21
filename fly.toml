@@ -8,7 +8,7 @@ primary_region = 'cdg'
 
 [build]
   builder = 'paketobuildpacks/builder:base'
-  buildpacks = ["gcr.io/paketo-buildpacks/python"]
+  buildpacks = ["paketo-buildpacks/python"]
 
 [env]
   PORT = '0'
